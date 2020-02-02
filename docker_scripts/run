@@ -69,5 +69,5 @@ nvidia-docker run -ti --rm \
 --volume ${output_dir}:${OUTPUT_VOLUME} \
 -v `realpath config_files/`:${STAR_FC_ROOT}/config_files \
 -v `realpath data/`:${STAR_FC_ROOT}/data \
--w ${STAR_FC_ROOT} star_fc ./STAR_FC $DISP_OPT $CONFIG_OPT $INPUT_OPT $OUTPUT_OPT
+-w ${STAR_FC_ROOT} star_fc ./STAR_FC_binary $DISP_OPT $CONFIG_OPT $INPUT_OPT $OUTPUT_OPT
 xhost -local:root

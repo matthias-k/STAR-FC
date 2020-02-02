@@ -47,7 +47,8 @@ unzip \
 dh-autoreconf \
 git && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install scikit-image
+RUN pip3 install matplotlib==3.0.3  # later versions don't work with python 3.5
+RUN pip3 install scikit-image==0.15.0  # later versions don't work with python 3.5
 
 WORKDIR $STAR_FC_ROOT
 
@@ -100,3 +101,16 @@ COPY ./src $STAR_FC_ROOT/src
 
 RUN cmake -DWITH_SALICON=ON -DCMAKE_BUILD_TYPE=Debug . && make
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64/stubs/:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:${LD_LIBRARY_PATH}
+
+
+# Python API
+RUN pip3 install Cython ipython==7.9
+ADD ./python $STAR_FC_ROOT/python
+WORKDIR $STAR_FC_ROOT/python
+
+RUN python3 setup.py build_ext --inplace
+ENV LD_LIBRARY_PATH $STAR_FC_ROOT:/opt/STAR_FC/contrib/caffe/build/lib/:$LD_LIBRARY_PATH
+ENV PYTHONPATH $STAR_FC_ROOT/python:$PYTHONPATH
+
+WORKDIR $STAR_FC_ROOT
+RUN python3 -c "import py_star_fc; controller=py_star_fc.Controller(); print('done')"

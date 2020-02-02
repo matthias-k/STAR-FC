@@ -85,7 +85,7 @@ set (	STAR_FC_SOURCES
 		src/Eye.cpp
 		src/FixationHistoryMap.cpp
 		src/foveate_wide_fov.cpp
-		src/main.cpp
+        #src/main.cpp
 		src/PeripheralAttentionalMap.cpp
 		src/PriorityMap.cpp
 		src/factorize.cpp
@@ -151,8 +151,14 @@ elseif (WITH_GPU_FOVEATION)
 	target_compile_definitions(STAR_FC PRIVATE GPU_FOVEATION=1)
 elseif(WITH_SALICON)
 	message ("Compiling with WITH_SALICON=ON")
-	add_executable(STAR_FC ${STAR_FC_SOURCES} ${INIH_SOURCES} src/Salicon.cpp ${STAR_FC_HEADERS} src/Salicon.hpp ${BMS_SOURCES} ${VOCUS_SOURCES})
-	target_compile_definitions(STAR_FC PRIVATE WITH_SALICON=1)
+    #add_executable(STAR_FC ${STAR_FC_SOURCES} ${INIH_SOURCES} src/Salicon.cpp ${STAR_FC_HEADERS} src/Salicon.hpp ${BMS_SOURCES} ${VOCUS_SOURCES})
+    #add_library(STAR_FC SHARED ${STAR_FC_SOURCES} ${INIH_SOURCES} src/Salicon.cpp ${STAR_FC_HEADERS} src/Salicon.hpp ${BMS_SOURCES} ${VOCUS_SOURCES})
+    add_library(STAR_FC SHARED ${STAR_FC_SOURCES} ${INIH_SOURCES} src/Salicon.cpp ${BMS_SOURCES} ${VOCUS_SOURCES})
+    set_property(TARGET STAR_FC PROPERTY POSITION_INDEPENDENT_CODE ON)
+    #set_target_properties(STAR_FC PROPERTIES PUBLIC_HEADER ${STAR_FC_HEADERS})
+    set_target_properties(STAR_FC PROPERTIES PUBLIC_HEADER src/Controller.hpp)
+    #target_compile_definitions(STAR_FC PRIVATE WITH_SALICON=1)
+    target_compile_definitions(STAR_FC PRIVATE WITH_SALICON=1)
 else()
 	add_executable(STAR_FC ${STAR_FC_SOURCES} ${INIH_SOURCES} ${STAR_FC_HEADERS} ${BMS_SOURCES} ${VOCUS_SOURCES})
 endif()
@@ -163,3 +169,6 @@ target_link_libraries(STAR_FC ${OpenCV_LIBS} ${FFTW3_LIBRARY} ${FFTW3_THREADS} $
 else()
 target_link_libraries(STAR_FC ${OpenCV_LIBS} ${FFTW3_LIBRARY} ${FFTW3_THREADS} ${MATIO_LIB} ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
 endif()
+
+add_executable(STAR_FC_binary src/main.cpp)
+target_link_libraries(STAR_FC_binary STAR_FC)
