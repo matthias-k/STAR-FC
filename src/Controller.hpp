@@ -41,14 +41,6 @@ class Controller {
 
 
 private:
-	Environment* env;
-	Eye* eye;
-	FixationHistoryMap* fixHistMap;
-	PeripheralAttentionalMap* periphMap;
-	CentralAttentionalMap* centralMap;
-	ConspicuityMap* conspMap;
-	PriorityMap* priorityMap;
-
 	int maxNumFixations, numSubjects, curSubject, partNumFixations, blendingStrategy;
 	string configFilename, inputFilename, inputDirname, saveDir, screenshotDir, fixDir, fixLogName;
 	bool configFileOptSet, saveDirOptSet, saveScreenOptSet, saveFixOptSet, inputDirOptSet, inputImgOptSet, overwriteOptSet, displayFixOptSet;
@@ -64,6 +56,14 @@ private:
 	string imgName;
 
 public:
+	Environment* env;
+	Eye* eye;
+	FixationHistoryMap* fixHistMap;
+	PeripheralAttentionalMap* periphMap;
+	CentralAttentionalMap* centralMap;
+	ConspicuityMap* conspMap;
+	PriorityMap* priorityMap;
+
 	Controller();
 	bool init(string imgFilename);
 	void run();
@@ -76,11 +76,11 @@ public:
 	string getScreenshotDir();
 	void getImageList();
 	void runSTAR_FC();
+	void runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNumFixations);
 	void runSingleInput();
 	void runBatchInput();
 	bool resultsDirExists(string imgFilename);
 	void makeResultsDir(string imgFilename);
-
 };
 
 #endif

@@ -517,3 +517,209 @@ void Controller::runSTAR_FC() {
 		destroyAllWindows();
 	}
 }
+
+
+void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNumFixations) {
+    cout << "maxNumFixations " << maxNumFixations << endl;
+
+    if (!fixationHistory.size()) {
+        cout << "Fixation history has to have at least one element!" << endl;
+        return;
+    }
+
+	Point prevGazeCoords = Point(fixationHistory[0].x+1, fixationHistory[0].y+1);
+	eye->setGazeCoords(prevGazeCoords); //set gaze at center initially
+	//fixHistMap->saveFixationCoords(eye->getGazeCoords());
+
+	if (displayFixOptSet) {
+		namedWindow("Image with fixations", CV_WINDOW_NORMAL);
+		resizeWindow("Image with fixations", env->getWidth()/2,env->getHeight()/2);
+	}
+
+
+	cout << fixHistMap->getNumberOfFixations() << endl;
+    cout << "going through history" << endl;
+
+	while(fixHistMap->getNumberOfFixations() + 1 < fixationHistory.size()) {
+		clock_t begin  = clock();
+		//eye->viewScene();
+		clock_t end = clock();
+		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
+
+		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
+		cout << "Foveation took " << elapsed_secs << " sec" << endl;
+
+		//periphMap->computeBUSaliency(eye->getFoveatedView());
+		//periphMap->computePeriphMap(blendingStrategy==1);
+
+#ifdef WITH_SALICON
+		//centralMap->centralDetection(eye->getFoveatedView());
+		//centralMap->maskCentralDetection();
+#else
+		//centralMap->detectFaces(eye->getFoveatedView());
+		//centralMap->maskFaceDetection();
+#endif
+
+		//conspMap->computeConspicuityMap(periphMap->getPeriphMap(), centralMap->getCentralMap());
+
+		//cout << "current eye gaze x=" << eye->getGazeCoords().y << " y=" << eye->getGazeCoords().x << endl;
+		//priorityMap->computeNextFixationDirection(periphMap, centralMap, fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
+
+		//QPixmap priorityMapPixmap = OpenCV_Qt::cvMatToQPixmap(priorityMap->getPriorityMapVis());
+
+		prevGazeCoords = eye->getGazeCoords();
+        cout << "prevGazeCoords " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
+        //////////
+        Point nextGazeCoords = fixationHistory[fixHistMap->getNumberOfFixations() + 1];
+        Point direction = nextGazeCoords - prevGazeCoords;  
+		eye->setGazeCoords(direction);
+
+		//cout << "New eye gaze x=" << eye->getGazeCoords().y << " y=" << eye->getGazeCoords().x << endl;
+
+		fixHistMap->decayFixations();
+        cout << "prevGazeCoords2 " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
+		fixHistMap->saveFixationCoords(prevGazeCoords);
+
+		//QPixmap fixHistPixmap = OpenCV_Qt::cvMatToQPixmap(fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
+
+		env->drawFixation(eye->getGazeCoords());
+
+		if (displayFixOptSet) {
+			imshow("Image with fixations", env->getSceneWithFixations());
+			waitKey(10);
+		}
+		//environmentPixmap = OpenCV_Qt::cvMatToQPixmap(env->getSceneWithFixations());
+		//emit environmentChanged(environmentPixmap);
+		//save_pixmap("debug/envWithFixations.png", environmentPixmap);
+
+		//QString fixCountString = QString("Fixation count: %1/%2").arg(fixHistMap->getNumberOfFixations()).arg(maxNumFixations);
+
+		if (saveFixOptSet && partNumFixations > 0) {
+			// partial results logging
+			if(fixHistMap->getNumberOfFixations()%partNumFixations == 0){
+				if (numSubjects > 1) {
+					string saveToMat = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + "_" + to_string(curSubject) + ".mat";
+					fixHistMap->dumpFixationsToMat(saveToMat.c_str());
+					string saveToImg = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + "_" + to_string(curSubject) + ".jpg";
+					env->saveSceneWithFixations(saveToImg.c_str());
+
+				} else {
+					string saveToMat = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()); fixHistMap->dumpFixationsToMat(saveToMat.c_str());
+					string saveToImg = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + ".jpg";
+					env->saveSceneWithFixations(saveToImg.c_str());
+				}
+			}
+		}
+    }
+
+    cout << "starting to sample till a total of " << maxNumFixations << " fixations" << endl;
+
+	while(fixHistMap->getNumberOfFixations() < maxNumFixations) {
+
+		clock_t begin  = clock();
+		eye->viewScene();
+		clock_t end = clock();
+		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
+
+		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
+		cout << "Foveation took " << elapsed_secs << " sec" << endl;
+
+		periphMap->computeBUSaliency(eye->getFoveatedView());
+		periphMap->computePeriphMap(blendingStrategy==1);
+
+#ifdef WITH_SALICON
+		centralMap->centralDetection(eye->getFoveatedView());
+		centralMap->maskCentralDetection();
+#else
+		centralMap->detectFaces(eye->getFoveatedView());
+		centralMap->maskFaceDetection();
+#endif
+
+		conspMap->computeConspicuityMap(periphMap->getPeriphMap(), centralMap->getCentralMap());
+		priorityMap->computeNextFixationDirection(periphMap, centralMap, fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
+
+		prevGazeCoords = eye->getGazeCoords();
+        //cout << "prevGazeCoords " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
+		eye->setGazeCoords(priorityMap->getNextFixationDirection());
+
+		fixHistMap->decayFixations();
+        //cout << "prevGazeCoords2 " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
+		fixHistMap->saveFixationCoords(prevGazeCoords);
+
+		env->drawFixation(eye->getGazeCoords());
+
+		if (displayFixOptSet) {
+			imshow("Image with fixations", env->getSceneWithFixations());
+			waitKey(10);
+		}
+		
+        if (saveFixOptSet && partNumFixations > 0) {
+			// partial results logging
+			if(fixHistMap->getNumberOfFixations()%partNumFixations == 0){
+				if (numSubjects > 1) {
+					string saveToMat = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + "_" + to_string(curSubject) + ".mat";
+					fixHistMap->dumpFixationsToMat(saveToMat.c_str());
+					string saveToImg = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + "_" + to_string(curSubject) + ".jpg";
+					env->saveSceneWithFixations(saveToImg.c_str());
+
+				} else {
+					string saveToMat = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()); fixHistMap->dumpFixationsToMat(saveToMat.c_str());
+					string saveToImg = fixDir + "/" + fixLogName + "_partial_" + to_string(fixHistMap->getNumberOfFixations()) + ".jpg";
+					env->saveSceneWithFixations(saveToImg.c_str());
+				}
+			}
+		}
+	}
+
+    cout << "Setting final state" << endl;
+
+		clock_t begin  = clock();
+		eye->viewScene();
+		clock_t end = clock();
+		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
+
+		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
+		cout << "Foveation took " << elapsed_secs << " sec" << endl;
+
+		//QPixmap eyeViewPixmap = OpenCV_Qt::cvMatToQPixmap(eye->getFoveatedView());
+		//saveToImg("debug/foveatedScene.png", eye->getFoveatedView());
+
+		periphMap->computeBUSaliency(eye->getFoveatedView());
+		periphMap->computePeriphMap(blendingStrategy==1);
+
+		//QPixmap periphMapPixmap = OpenCV_Qt::cvMatToQPixmap(periphMap->getPeriphMap());
+
+#ifdef WITH_SALICON
+		centralMap->centralDetection(eye->getFoveatedView());
+		centralMap->maskCentralDetection();
+#else
+		centralMap->detectFaces(eye->getFoveatedView());
+		centralMap->maskFaceDetection();
+#endif
+
+		// QPixmap centralMapPixmap = OpenCV_Qt::cvMatToQPixmap(centralMap->getCentralMap());
+
+
+		conspMap->computeConspicuityMap(periphMap->getPeriphMap(), centralMap->getCentralMap());
+		//emit periphMapMaxSet(QString("periphMapMax: %1/%2").arg(periphMap->getPeriphMapMax(), 3, 'f', 2, '0').arg(conspMap->getScaledPeriphMapMax(), 3, 'f', 2, '0'));
+		//emit centralMapMaxSet(QString("centralMapMax: %1/%2").arg(centralMap->getCentralMapMax(), 3, 'f', 2, '0').arg(conspMap->getScaledCentralMapMax(), 3, 'f', 2, '0'));
+
+
+		//QPixmap conspMapPixmap = OpenCV_Qt::cvMatToQPixmap(conspMap->getConspMap());
+
+		//cout << "current eye gaze x=" << eye->getGazeCoords().y << " y=" << eye->getGazeCoords().x << endl;
+		priorityMap->computeNextFixationDirection(periphMap, centralMap, fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
+
+	//final results logging
+	if (numSubjects > 1) {
+		string saveTo = fixDir + '/' + fixLogName + '_' + to_string(curSubject) + ".mat";
+		fixHistMap->dumpFixationsToMat(saveTo.c_str());
+	} else {
+		string saveTo = fixDir + "/" + fixLogName + ".mat";
+		fixHistMap->dumpFixationsToMat(saveTo.c_str());
+	}
+
+	if (displayFixOptSet) {
+		destroyAllWindows();
+	}
+}

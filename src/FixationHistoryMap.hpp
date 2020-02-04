@@ -23,10 +23,10 @@ private:
 	double iorSizePx;
 	double decayRate;
 
-	vector<Point> fixationsList;
 	Point lastFixation;
 
 public:
+	vector<Point> fixationsList;
 
 	FixationHistoryMap(int h, int w, int envH, int envW, double iorDecayRate, double iorSizeDeg, double deg2pix);
 	~FixationHistoryMap();
