@@ -113,4 +113,4 @@ ENV LD_LIBRARY_PATH $STAR_FC_ROOT:/opt/STAR_FC/contrib/caffe/build/lib/:$LD_LIBR
 ENV PYTHONPATH $STAR_FC_ROOT/python:$PYTHONPATH
 
 WORKDIR $STAR_FC_ROOT
-RUN python3 -c "import py_star_fc; controller=py_star_fc.Controller(); print('done')"
+RUN python3 -c "import star_fc; controller=star_fc.Controller(); print('done')"

@@ -1,8 +1,8 @@
 import sys
 
-import py_star_fc
+import star_fc
 
-controller = py_star_fc.Controller()
+controller = star_fc.Controller()
 
 controller.parseCommandLineOptions(sys.argv) 
 

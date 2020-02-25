@@ -3,9 +3,10 @@ import sys
 
 import numpy as np
 
-import py_star_fc
+import star_fc
 
-controller = py_star_fc.Controller()
+controller = star_fc.Controller()
+print("COMMAND LINE", sys.argv)
 controller.parseCommandLineOptions(sys.argv) 
 
 filename = '/opt/input_dir/Action_015.jpg'

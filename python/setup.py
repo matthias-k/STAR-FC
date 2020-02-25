@@ -3,12 +3,13 @@ import os
 from distutils.core import setup, Extension
 
 from Cython.Build import cythonize
+import numpy as np
 
 STAR_FC_ROOT = os.environ['STAR_FC_ROOT']
 
 setup(
     ext_modules=cythonize(Extension(
-        "py_star_fc",
+        "star_fc",
         ["star_fc.pyx"],
         language='c++',
         include_dirs=[
@@ -21,7 +22,7 @@ setup(
             '/usr/local/cuda-8.0/include',
             '/usr/include',
             '/usr/local/include/',
-        ],
+        ]+[np.get_include()],
         library_dirs=[
             STAR_FC_ROOT,
             '/usr/lib/x86_64-linux-gnu',

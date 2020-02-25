@@ -95,6 +95,11 @@ cdef class Controller:
         
         return np.array(fixations)
 
+    def getGazeCoords(self):
+        cdef Point gazeCoords = dereference(self.c_controller.eye).getGazeCoords()
+
+        return np.array([gazeCoords.x, gazeCoords.y])
+
     #@property
     #def maxNumFixations(self):
     #    return self.c_controller.maxNumFixations
