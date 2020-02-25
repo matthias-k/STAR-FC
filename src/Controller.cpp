@@ -465,11 +465,13 @@ void Controller::runSTAR_FC() {
 		//QPixmap priorityMapPixmap = OpenCV_Qt::cvMatToQPixmap(priorityMap->getPriorityMapVis());
 
 		prevGazeCoords = eye->getGazeCoords();
+        cout << "prevGazeCoords " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
 		eye->setGazeCoords(priorityMap->getNextFixationDirection());
 
 		//cout << "New eye gaze x=" << eye->getGazeCoords().y << " y=" << eye->getGazeCoords().x << endl;
 
 		fixHistMap->decayFixations();
+        cout << "prevGazeCoords2 " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
 		fixHistMap->saveFixationCoords(prevGazeCoords);
 
 		//QPixmap fixHistPixmap = OpenCV_Qt::cvMatToQPixmap(fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
@@ -527,6 +529,8 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
         return;
     }
 
+    cout << "setting initial fixation " << endl;
+
 	Point prevGazeCoords = Point(fixationHistory[0].x+1, fixationHistory[0].y+1);
 	eye->setGazeCoords(prevGazeCoords); //set gaze at center initially
 	//fixHistMap->saveFixationCoords(eye->getGazeCoords());
@@ -546,8 +550,7 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
 		clock_t end = clock();
 		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
 
-		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
-		cout << "Foveation took " << elapsed_secs << " sec" << endl;
+		cout << "Conditioning fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
 
 		//periphMap->computeBUSaliency(eye->getFoveatedView());
 		//periphMap->computePeriphMap(blendingStrategy==1);
@@ -568,7 +571,6 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
 		//QPixmap priorityMapPixmap = OpenCV_Qt::cvMatToQPixmap(priorityMap->getPriorityMapVis());
 
 		prevGazeCoords = eye->getGazeCoords();
-        cout << "prevGazeCoords " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
         //////////
         Point nextGazeCoords = fixationHistory[fixHistMap->getNumberOfFixations() + 1];
         Point direction = nextGazeCoords - prevGazeCoords;  
@@ -577,7 +579,6 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
 		//cout << "New eye gaze x=" << eye->getGazeCoords().y << " y=" << eye->getGazeCoords().x << endl;
 
 		fixHistMap->decayFixations();
-        cout << "prevGazeCoords2 " << prevGazeCoords.x << " " << prevGazeCoords.y << endl;
 		fixHistMap->saveFixationCoords(prevGazeCoords);
 
 		//QPixmap fixHistPixmap = OpenCV_Qt::cvMatToQPixmap(fixHistMap->getFixationHistoryMap(eye->getGazeCoords()));
@@ -621,7 +622,7 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
 		clock_t end = clock();
 		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
 
-		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
+		cout << "Sampling fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
 		cout << "Foveation took " << elapsed_secs << " sec" << endl;
 
 		periphMap->computeBUSaliency(eye->getFoveatedView());
@@ -678,7 +679,7 @@ void Controller::runConditionalSTAR_FC(vector<Point> fixationHistory, int maxNum
 		clock_t end = clock();
 		double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
 
-		cout << "Processing fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
+		cout << "Preparing for fixation " << fixHistMap->getNumberOfFixations() << " for image " << imgName << endl;
 		cout << "Foveation took " << elapsed_secs << " sec" << endl;
 
 		//QPixmap eyeViewPixmap = OpenCV_Qt::cvMatToQPixmap(eye->getFoveatedView());
